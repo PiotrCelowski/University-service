@@ -1,0 +1,33 @@
+/* List view */
+.list-view .content {
+  display: flex;
+}
+.list-view .program-grid,
+.list-view .subject-grid {
+  flex: 2;
+}
+.list-view .program-form,
+.list-view .subject-form {
+  flex: 1;
+  padding: var(--lumo-space-m);
+}
+@media all and (max-width: 1100px) {
+  .list-view.editing .toolbar,
+  .list-view.editing .program-grid,
+  .list-view.editing .subject-grid {
+  display: none;
+  }
+}
+
+/* Main layout */
+a[highlight] {
+  font-weight: bold;
+  text-decoration: underline;
+}
+.header {
+  padding: 0 var(--lumo-space-m);
+}
+.header h1.logo {
+  font-size: 1em;
+  margin: var(--lumo-space-m);
+}

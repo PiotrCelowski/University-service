@@ -1,29 +1,51 @@
 package university.service.application.program;
 
 import org.springframework.stereotype.Component;
+import university.service.data.program.ProgramData;
 import university.service.domain.program.ProgramEntity;
+import university.service.domain.program.SubjectEntity;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Component
 public class ProgramUseCase {
+    private ProgramData programData;
+
+    public ProgramUseCase(ProgramData programData) {
+        this.programData = programData;
+    }
 
     public ProgramEntity createProgram(String name, String description) {
         return new ProgramEntity(name, description);
     }
 
-    public List<ProgramEntity> createDummyPrograms() {
-        ArrayList<ProgramEntity> dummyPrograms = new ArrayList<>();
-
-        dummyPrograms.add(new ProgramEntity("Maths", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent vel urna ut tellus efficitur efficitur non id lacus. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Aenean ipsum ex, consequat et porttitor vitae, auctor eu quam. Quisque at neque sit amet mi dapibus elementum quis vel diam. Proin tincidunt lobortis dolor, at malesuada dui condimentum sed. Quisque blandit dui a neque pulvinar, luctus fermentum ex pharetra. In lorem libero, imperdiet ac fringilla ut, scelerisque et massa. Phasellus mollis lectus at maximus euismod. Phasellus condimentum, nisl ac varius tempus, diam elit convallis nisl, ut blandit est ex ac metus. Aliquam erat volutpat. Integer finibus auctor viverra. Curabitur sodales sodales cursus. Donec ut rhoncus nisi."));
-        dummyPrograms.add(new ProgramEntity("Polish", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent vel urna ut tellus efficitur efficitur non id lacus. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Aenean ipsum ex, consequat et porttitor vitae, auctor eu quam. Quisque at neque sit amet mi dapibus elementum quis vel diam. Proin tincidunt lobortis dolor, at malesuada dui condimentum sed. Quisque blandit dui a neque pulvinar, luctus fermentum ex pharetra. In lorem libero, imperdiet ac fringilla ut, scelerisque et massa. Phasellus mollis lectus at maximus euismod. Phasellus condimentum, nisl ac varius tempus, diam elit convallis nisl, ut blandit est ex ac metus. Aliquam erat volutpat. Integer finibus auctor viverra. Curabitur sodales sodales cursus. Donec ut rhoncus nisi."));
-        dummyPrograms.add(new ProgramEntity("Physics", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent vel urna ut tellus efficitur efficitur non id lacus. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Aenean ipsum ex, consequat et porttitor vitae, auctor eu quam. Quisque at neque sit amet mi dapibus elementum quis vel diam. Proin tincidunt lobortis dolor, at malesuada dui condimentum sed. Quisque blandit dui a neque pulvinar, luctus fermentum ex pharetra. In lorem libero, imperdiet ac fringilla ut, scelerisque et massa. Phasellus mollis lectus at maximus euismod. Phasellus condimentum, nisl ac varius tempus, diam elit convallis nisl, ut blandit est ex ac metus. Aliquam erat volutpat. Integer finibus auctor viverra. Curabitur sodales sodales cursus. Donec ut rhoncus nisi."));
-
-        return dummyPrograms;
+    public List<ProgramEntity> getAllPrograms() {
+        return programData.getAllPrograms();
     }
 
-    public List<ProgramEntity> getAllPrograms() {
-        return createDummyPrograms();
+    public void saveProgram(ProgramEntity programEntity) {
+        programData.saveProgram(programEntity);
+    }
+
+    public void deleteProgram(ProgramEntity programEntity) {
+        programData.deleteProgram(programEntity);
+    }
+
+    public ProgramEntity getProgramByName(String parameter) {
+        return programData.getProgramByName(parameter);
+    }
+
+
+    public List<SubjectEntity> getAllSubjectForProgram(ProgramEntity currentProgram) {
+        return programData.getAllSubjectsForProgram(currentProgram);
+    }
+
+    public void saveSubject(SubjectEntity subjectEntity, ProgramEntity programEntity) {
+        programData.saveSubject(subjectEntity, programEntity);
+    }
+
+    public void deleteSubject(SubjectEntity subjectEntity, ProgramEntity programEntity) {
+        programData.deleteSubject(subjectEntity, programEntity);
     }
 }
