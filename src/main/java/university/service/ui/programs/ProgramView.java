@@ -10,21 +10,32 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.core.GrantedAuthority;
 import university.service.application.program.ProgramUseCase;
 import university.service.domain.program.ProgramEntity;
+import university.service.security.SecurityService;
 import university.service.ui.MainLayout;
 import university.service.ui.programs.forms.ProgramForm;
 
-@Route(value="", layout = MainLayout.class)
+import java.util.Collection;
+
+@Secured({"WORKER","USER"})
+@Route(value="programs", layout = MainLayout.class)
 @PageTitle("Programs | University service")
 public class ProgramView extends VerticalLayout {
     private Grid<ProgramEntity> grid = new Grid<>(ProgramEntity.class);
     private ProgramUseCase programUseCase;
     private ProgramForm programForm;
     private ProgramEntity selectedProgram;
+    private SecurityService securityService;
+    private Collection<? extends GrantedAuthority> currentUserAuthorities;
 
-    public ProgramView(ProgramUseCase programUseCase) {
+    public ProgramView(ProgramUseCase programUseCase, SecurityService securityService) {
         this.programUseCase = programUseCase;
+        this.securityService = securityService;
+        this.currentUserAuthorities = securityService.getAuthenticatedUser().getAuthorities();
+
         addClassName("list-view");
         setSizeFull();
         configureGrid();
@@ -45,6 +56,7 @@ public class ProgramView extends VerticalLayout {
         updateList();
 
         closeEditor();
+
         grid.asSingleSelect().addValueChangeListener(event ->
                 setSelectedProgram(event.getValue()));
     }
@@ -62,16 +74,16 @@ public class ProgramView extends VerticalLayout {
 
     private HorizontalLayout getToolbar() {
         Button addProgramButton = new Button("Add program");
-        Button subjectsButton = new Button("Show subjects");
+        Button programDetailsButton = new Button("Show program details");
         addProgramButton.addClickListener(this::handleForm);
-        subjectsButton.addClickListener(this::navigateToSubjects);
+        programDetailsButton.addClickListener(this::navigateToProgramDetails);
 
-        HorizontalLayout toolbar = new HorizontalLayout(addProgramButton, subjectsButton);
+        HorizontalLayout toolbar = new HorizontalLayout(addProgramButton, programDetailsButton);
         toolbar.addClassName("toolbar");
         return toolbar;
     }
 
-    private void navigateToSubjects(ClickEvent<Button> buttonClickEvent) {
+    private void navigateToProgramDetails(ClickEvent<Button> buttonClickEvent) {
         UI.getCurrent().navigate("program" + "/" + getProgramName());
     }
 
@@ -130,7 +142,10 @@ public class ProgramView extends VerticalLayout {
 
     public void setSelectedProgram(ProgramEntity selectedProgram) {
         this.selectedProgram = selectedProgram;
-        editProgramEntity(this.selectedProgram);
+
+        if(currentUserAuthorities != null && currentUserAuthorities.stream().anyMatch(a -> a.getAuthority().equals("WORKER"))) {
+            editProgramEntity(this.selectedProgram);
+        }
 
     }
 

@@ -11,6 +11,7 @@ import java.util.List;
 @Component
 public class ProgramData {
     ArrayList<ProgramEntity> allPrograms = new ArrayList<>();
+    ArrayList<SubjectEntity> allSubjects = new ArrayList<>();
 
     @PostConstruct
     private void createDummyPrograms() {
@@ -21,6 +22,13 @@ public class ProgramData {
         getProgramByName("Physics").addSubject(new SubjectEntity("1st subject", "Pierwszy"));
         getProgramByName("Physics").addSubject(new SubjectEntity("2nd subject", "Drugi"));
 
+    }
+
+    @PostConstruct
+    private void createDummySubjects() {
+        allSubjects.add(new SubjectEntity("Subject1", "aaaa"));
+        allSubjects.add(new SubjectEntity("Subject2", "aaa"));
+        allSubjects.add(new SubjectEntity("Subject3", "aaa"));
     }
 
     public List<ProgramEntity> getAllPrograms() {
@@ -56,5 +64,19 @@ public class ProgramData {
 
     public void deleteSubject(SubjectEntity subjectEntity, ProgramEntity programEntity) {
         programEntity.removeSubject(subjectEntity);
+    }
+
+    public SubjectEntity getSubjectByName(String parameter) {
+        List<SubjectEntity> allSubjects = getAllSubjects();
+        for(int i=0; i<allSubjects.size(); i++ ) {
+            if(allSubjects.get(i).getSubjectName().equals(parameter)) {
+                return allSubjects.get(i);
+            }
+        }
+        return null;
+    }
+
+    public List<SubjectEntity> getAllSubjects() {
+        return allSubjects;
     }
 }

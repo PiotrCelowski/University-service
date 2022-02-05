@@ -5,7 +5,6 @@ import university.service.data.program.ProgramData;
 import university.service.domain.program.ProgramEntity;
 import university.service.domain.program.SubjectEntity;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -47,5 +46,13 @@ public class ProgramUseCase {
 
     public void deleteSubject(SubjectEntity subjectEntity, ProgramEntity programEntity) {
         programData.deleteSubject(subjectEntity, programEntity);
+    }
+
+    public SubjectEntity getSubjectByName(String parameter) {
+        return programData.getSubjectByName(parameter);
+    }
+
+    public List<SubjectEntity> getAllSubjects() {
+        return programData.getAllSubjects();
     }
 }

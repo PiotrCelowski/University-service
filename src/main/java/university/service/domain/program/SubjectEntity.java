@@ -14,7 +14,7 @@ public class SubjectEntity {
     }
 
     public String getSubjectName() {
-        return subjectName;
+        return this.subjectName;
     }
 
     public void setSubjectName(String subjectName) {

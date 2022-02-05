@@ -1,7 +1,6 @@
 package university.service.ui.programs;
 
 import com.vaadin.flow.component.ClickEvent;
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
@@ -9,11 +8,13 @@ import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEvent;
+import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.GrantedAuthority;
 import university.service.application.program.ProgramUseCase;
+import university.service.domain.program.ProgramEntity;
 import university.service.domain.program.SubjectEntity;
 import university.service.security.SecurityService;
 import university.service.ui.MainLayout;
@@ -22,17 +23,18 @@ import university.service.ui.programs.forms.SubjectForm;
 import java.util.Collection;
 
 @Secured({"WORKER","USER"})
-@Route(value="subjects", layout = MainLayout.class)
+@Route(value="program", layout = MainLayout.class)
 @PageTitle("Subjects | University service")
-public class SubjectView extends VerticalLayout {
+public class ProgramDetailsView extends VerticalLayout implements HasUrlParameter<String> {
     private Grid<SubjectEntity> grid = new Grid<>(SubjectEntity.class);
     private ProgramUseCase programUseCase;
+    private ProgramEntity currentProgram;
     private SubjectForm subjectForm;
     private SubjectEntity selectedSubject;
     private SecurityService securityService;
     private Collection<? extends GrantedAuthority> currentUserAuthorities;
 
-    public SubjectView(ProgramUseCase programUseCase, SecurityService securityService) {
+    public ProgramDetailsView(ProgramUseCase programUseCase, SecurityService securityService) {
         this.programUseCase = programUseCase;
         this.securityService = securityService;
         this.currentUserAuthorities = securityService.getAuthenticatedUser().getAuthorities();
@@ -54,12 +56,10 @@ public class SubjectView extends VerticalLayout {
 
         add(getToolbar(), content);
 
-        updateList();
-
         closeEditor();
-
         grid.asSingleSelect().addValueChangeListener(event ->
                 setSelectedSubject(event.getValue()));
+
     }
 
     private void setSelectedSubject(SubjectEntity selectedSubject) {
@@ -83,43 +83,35 @@ public class SubjectView extends VerticalLayout {
 
     private HorizontalLayout getToolbar() {
         HorizontalLayout toolbar = new HorizontalLayout();
-        Button showSubjectDetailsButton = new Button("Show subject details");
-        showSubjectDetailsButton.addClickListener(this::navigateToSubjectDetails);
 
         if(currentUserAuthorities != null && currentUserAuthorities.stream().anyMatch(a -> a.getAuthority().equals("WORKER"))) {
             Button addSubjectButton = new Button("Add subject");
-            Button removeSubjectButton = new Button("Remove subject");
-
             addSubjectButton.addClickListener(this::handleForm);
-            removeSubjectButton.addClickListener(this::handleForm);
-            toolbar.add(addSubjectButton, removeSubjectButton, showSubjectDetailsButton);
-        } else {
-            toolbar.add(showSubjectDetailsButton);
+            toolbar.add(addSubjectButton);
         }
 
         toolbar.addClassName("toolbar");
         return toolbar;
     }
 
-    private void navigateToSubjectDetails(ClickEvent<Button> buttonClickEvent) {
-        UI.getCurrent().navigate("subject" + "/" + getSelectedSubjectName());
-    }
-
-    private String getSelectedSubjectName() {
-        return this.selectedSubject.getSubjectName();
-    }
-
     private void updateList() {
-        grid.setItems(programUseCase.getAllSubjects());
+        grid.setItems(programUseCase.getAllSubjectForProgram(this.currentProgram));
     }
 
+    @Override
+    public void setParameter(BeforeEvent event, String parameter) {
+        this.currentProgram = programUseCase.getProgramByName(parameter);
+        updateList();
+    }
 
     private void saveSubjectEntity(SubjectForm.SaveEvent event) {
+        programUseCase.saveSubject(event.getSubjectEntity(), this.currentProgram);
         updateList();
         closeEditor();
     }
 
     private void deleteSubjectEntity(SubjectForm.DeleteEvent event) {
+        programUseCase.deleteSubject(event.getSubjectEntity(), this.currentProgram);
         updateList();
         closeEditor();
     }
