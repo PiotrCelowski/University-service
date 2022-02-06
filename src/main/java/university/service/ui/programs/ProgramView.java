@@ -77,8 +77,13 @@ public class ProgramView extends VerticalLayout {
         Button programDetailsButton = new Button("Show program details");
         addProgramButton.addClickListener(this::handleForm);
         programDetailsButton.addClickListener(this::navigateToProgramDetails);
+        HorizontalLayout toolbar = new HorizontalLayout();
 
-        HorizontalLayout toolbar = new HorizontalLayout(addProgramButton, programDetailsButton);
+        if(currentUserAuthorities != null && currentUserAuthorities.stream().anyMatch(a -> a.getAuthority().equals("WORKER"))) {
+            toolbar.add(addProgramButton, programDetailsButton);
+        } else {
+            toolbar.add(programDetailsButton);
+        }
         toolbar.addClassName("toolbar");
         return toolbar;
     }
