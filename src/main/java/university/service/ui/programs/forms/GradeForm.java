@@ -7,6 +7,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.Binder;
@@ -14,23 +15,19 @@ import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.shared.Registration;
 import university.service.domain.event.EventEntity;
 import university.service.domain.grade.GradeEntity;
-import university.service.domain.program.ProgramEntity;
-import university.service.domain.program.SubjectEntity;
 
-public class EventForm extends FormLayout {
-    TextField eventDate = new TextField("Event date");
-    private EventEntity selectedEvent;
-
-    Binder<EventEntity> binder = new BeanValidationBinder<>(EventEntity.class);
-
+public class GradeForm extends FormLayout {
+    IntegerField grade = new IntegerField("Grade");
+    private GradeEntity selectedGrade;
+    Binder<GradeEntity> binder = new BeanValidationBinder<>(GradeEntity.class);
     Button save = new Button("Save");
 
-    public EventForm() {
-        addClassName("program-form");
+    public GradeForm() {
+        addClassName("grade-form");
         binder.bindInstanceFields(this);
-        eventDate.setEnabled(true);
-        eventDate.setReadOnly(false);
-        add(eventDate, createButtonsLayout());
+        grade.setEnabled(true);
+        grade.setReadOnly(false);
+        add(grade, createButtonsLayout());
     }
 
     private HorizontalLayout createButtonsLayout() {
@@ -42,37 +39,37 @@ public class EventForm extends FormLayout {
         return new HorizontalLayout(save);
     }
 
-    public void setSelectedEvent(EventEntity event) {
-        this.selectedEvent = event;
-        binder.readBean(this.selectedEvent);
+    public void setSelectedEvent(GradeEntity grade) {
+        this.selectedGrade = grade;
+        binder.readBean(this.selectedGrade);
     }
 
     private void validateAndSave() {
         try {
-            binder.writeBean(this.selectedEvent);
-            fireEvent(new SaveEvent(this, this.selectedEvent));
+            binder.writeBean(this.selectedGrade);
+            fireEvent(new SaveEvent(this, this.selectedGrade));
         } catch (ValidationException e) {
             e.printStackTrace();
         }
     }
 
     //Events
-    public abstract static class EventFormEvent extends ComponentEvent<EventForm> {
-        private EventEntity eventEntity;
+    public abstract static class GradeFormEvent extends ComponentEvent<GradeForm> {
+        private GradeEntity gradeEntity;
 
-        public EventFormEvent(EventForm source, EventEntity eventEntity) {
+        public GradeFormEvent(GradeForm source, GradeEntity gradeEntity) {
             super(source, true);
-            this.eventEntity = eventEntity;
+            this.gradeEntity = gradeEntity;
         }
 
-        public EventEntity getEventEntity() {
-            return this.eventEntity;
+        public GradeEntity getGradeEntity() {
+            return this.gradeEntity;
         }
     }
 
-    public static class SaveEvent extends EventFormEvent {
-        SaveEvent(EventForm source, EventEntity eventEntity) {
-            super(source, eventEntity);
+    public static class SaveEvent extends GradeFormEvent {
+        SaveEvent(GradeForm source, GradeEntity gradeEntity) {
+            super(source, gradeEntity);
         }
     }
 

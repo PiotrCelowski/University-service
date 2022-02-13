@@ -4,17 +4,16 @@ import org.springframework.stereotype.Component;
 import university.service.domain.program.SubjectEntity;
 
 import java.util.Date;
-import java.util.List;
 
 public class EventEntity {
     private SubjectEntity subject;
-    private List<Date> dates;
+    private Date date;
 
     public SubjectEntity getSubject() {
         return subject;
     }
 
-    public List<Date> getDates() {
-        return dates;
+    public Date getDate() {
+        return date;
     }
 }

@@ -28,7 +28,7 @@ public class Student extends BaseUserDecorator {
     }
 
     @Override
-    public Long getId() {
-        return this.baseUserWrapped.getId();
+    public Long getUserId() {
+        return this.baseUserWrapped.getUserId();
     }
 }

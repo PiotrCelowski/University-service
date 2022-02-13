@@ -1,4 +1,4 @@
-package university.service.ui.programs;
+package university.service.ui.users;
 
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
@@ -7,35 +7,38 @@ import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.data.binder.BeanValidationBinder;
+import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.GrantedAuthority;
-import university.service.application.program.ProgramUseCase;
-import university.service.domain.program.ProgramEntity;
-import university.service.domain.program.SubjectEntity;
+import university.service.application.identity.IdentityUseCase;
+import university.service.domain.identity.BaseUser;
+import university.service.domain.identity.GroupEntity;
 import university.service.security.SecurityService;
 import university.service.ui.MainLayout;
-import university.service.ui.programs.forms.SubjectForm;
+import university.service.ui.users.forms.AddUserToGroupForm;
 
 import java.util.Collection;
 
-@Secured({"WORKER","USER"})
-@Route(value="program", layout = MainLayout.class)
-@PageTitle("Subjects | University service")
-public class ProgramDetailsView extends VerticalLayout implements HasUrlParameter<String> {
-    private Grid<SubjectEntity> grid = new Grid<>(SubjectEntity.class);
-    private ProgramUseCase programUseCase;
-    private ProgramEntity currentProgram;
-    private SubjectForm subjectForm;
-    private SubjectEntity selectedSubject;
+@Secured({"WORKER","ADMIN"})
+@Route(value="group", layout = MainLayout.class)
+@PageTitle("Groups | University service")
+public class GroupMembersView extends VerticalLayout implements HasUrlParameter<String> {
+    private Grid<BaseUser> grid = new Grid<>(BaseUser.class);
+    private BaseUser selectedUser;
+    private GroupEntity selectedGroup;
     private SecurityService securityService;
     private Collection<? extends GrantedAuthority> currentUserAuthorities;
+    private IdentityUseCase identityUseCase;
+    private AddUserToGroupForm addUserToGroupForm;
+    private Binder<BaseUser> binder;
 
-    public ProgramDetailsView(ProgramUseCase programUseCase, SecurityService securityService) {
-        this.programUseCase = programUseCase;
+    public GroupMembersView(IdentityUseCase identityUseCase, SecurityService securityService) {
+        this.identityUseCase = identityUseCase;
         this.securityService = securityService;
         this.currentUserAuthorities = securityService.getAuthenticatedUser().getAuthorities();
 
@@ -43,105 +46,91 @@ public class ProgramDetailsView extends VerticalLayout implements HasUrlParamete
         setSizeFull();
         configureGrid();
 
-        subjectForm = new SubjectForm();
-        subjectForm.addListener(SubjectForm.SaveEvent.class, this::saveSubjectEntity);
-        subjectForm.addListener(SubjectForm.DeleteEvent.class, this::deleteSubjectEntity);
+        addUserToGroupForm = new AddUserToGroupForm();
+        addUserToGroupForm.addListener(AddUserToGroupForm.AddUserToGroupEvent.class, this::addUserToGroup);
 
-        FlexLayout content = new FlexLayout(grid, subjectForm);
+        FlexLayout content = new FlexLayout(grid, addUserToGroupForm);
         content.setFlexGrow(2, grid);
-        content.setFlexGrow(1, subjectForm);
-        content.setFlexShrink(1, subjectForm);
+        content.setFlexGrow(1, addUserToGroupForm);
+        content.setFlexShrink(1, addUserToGroupForm);
         content.addClassNames("content", "gap-m");
         content.setSizeFull();
 
         add(getToolbar(), content);
 
         closeEditor();
-        grid.asSingleSelect().addValueChangeListener(event ->
-                setSelectedSubject(event.getValue()));
 
+        this.binder = new BeanValidationBinder<>(BaseUser.class);
+
+        grid.asSingleSelect().addValueChangeListener(event ->
+                setSelectedMember(event.getValue()));
     }
 
-    private void setSelectedSubject(SubjectEntity selectedSubject) {
-        this.selectedSubject = selectedSubject;
-
-        if(currentUserAuthorities != null && currentUserAuthorities.stream().anyMatch(a -> a.getAuthority().equals("WORKER"))) {
-            editSubjectEntity(this.selectedSubject);
-        }
+    private void setSelectedMember(BaseUser user) {
+        this.selectedUser = user;
+        binder.readBean(this.selectedUser);
     }
 
     private void configureGrid() {
-        grid.addClassName("subject-grid");
+        grid.addClassName("group-user-grid");
         grid.setSizeFull();
         grid.removeAllColumns();
-        grid.addColumn(SubjectEntity::getSubjectName).setHeader("Subject name")
+        grid.addColumn(BaseUser::getUsername).setHeader("User name")
                 .setFlexGrow(1);
-        grid.addColumn(SubjectEntity::getSubjectDescription).setHeader("Subject description")
-                .setFlexGrow(4);
         grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
     }
 
     private HorizontalLayout getToolbar() {
-        HorizontalLayout toolbar = new HorizontalLayout();
+        Button addMemberButton = new Button("Add member");
+        addMemberButton.addClickListener(this::handleForm);
+        Button removeMemberButton = new Button("Remove member");
+        removeMemberButton.addClickListener(this::removeUserFromGroup);
 
-        if(currentUserAuthorities != null && currentUserAuthorities.stream().anyMatch(a -> a.getAuthority().equals("WORKER"))) {
-            Button addSubjectButton = new Button("Add subject");
-            addSubjectButton.addClickListener(this::handleForm);
-            toolbar.add(addSubjectButton);
-        }
-
+        HorizontalLayout toolbar = new HorizontalLayout(addMemberButton, removeMemberButton);
         toolbar.addClassName("toolbar");
         return toolbar;
     }
 
     private void updateList() {
-        grid.setItems(programUseCase.getAllSubjectForProgram(this.currentProgram));
+        grid.setItems(identityUseCase.getAllMembersOfGroup(this.selectedGroup));
     }
 
     @Override
     public void setParameter(BeforeEvent event, String parameter) {
-        this.currentProgram = programUseCase.getProgramByName(parameter);
+        this.selectedGroup = identityUseCase.getGroupByName(parameter);
         updateList();
     }
 
-    private void saveSubjectEntity(SubjectForm.SaveEvent event) {
-        programUseCase.saveSubject(event.getSubjectEntity(), this.currentProgram);
-        updateList();
-        closeEditor();
-    }
-
-    private void deleteSubjectEntity(SubjectForm.DeleteEvent event) {
-        programUseCase.deleteSubject(event.getSubjectEntity(), this.currentProgram);
+    private void addUserToGroup(AddUserToGroupForm.AddUserToGroupEvent event) {
+        identityUseCase.addUserToGroup(event.getUserName(), this.selectedGroup);
         updateList();
         closeEditor();
     }
 
-    public void editSubjectEntity(SubjectEntity subjectEntity) {
-        if (subjectEntity == null) {
-            closeEditor();
-        } else {
-            subjectForm.setSubjectEntity(subjectEntity);
-            subjectForm.setVisible(true);
-            addClassName("editing");
-        }
+    private void removeUserFromGroup(ClickEvent<Button> buttonClickEvent) {
+        identityUseCase.removeUserFromGroup(this.selectedUser.getUsername(), this.selectedGroup);
+        updateList();
+        closeEditor();
+    }
+
+    public void createUserEntity() {
+        grid.asSingleSelect().clear();
+        addUserToGroupForm.setSelectedUser(new BaseUser());
+        addUserToGroupForm.setVisible(true);
+        addClassName("editing");
     }
 
     private void handleForm(ClickEvent<Button> buttonClickEvent) {
-        if(!subjectForm.isVisible()) {
-            addSubjectEntity();
+        if(!addUserToGroupForm.isVisible()) {
+            createUserEntity();
         } else {
             closeEditor();
         }
     }
 
-    void addSubjectEntity() {
-        grid.asSingleSelect().clear();
-        editSubjectEntity(new SubjectEntity());
-    }
-
     private void closeEditor() {
-        subjectForm.setSubjectEntity(null);
-        subjectForm.setVisible(false);
+        addUserToGroupForm.setSelectedGroup(null);
+        addUserToGroupForm.setVisible(false);
         removeClassName("editing");
     }
 }

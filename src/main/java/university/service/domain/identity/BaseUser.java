@@ -1,9 +1,8 @@
 package university.service.domain.identity;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 public class BaseUser implements UserEntity {
@@ -12,7 +11,9 @@ public class BaseUser implements UserEntity {
     protected String role;
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    protected Long id;
+    protected Long userId;
+    @ManyToMany(mappedBy = "groupMembers", fetch = FetchType.EAGER)
+    List<GroupEntity> assignedGroups = new ArrayList<>();
 
 
     public BaseUser() {
@@ -57,8 +58,8 @@ public class BaseUser implements UserEntity {
     }
 
     @Override
-    public Long getId() {
-        return id;
+    public Long getUserId() {
+        return userId;
     }
 
     @Override
@@ -74,5 +75,17 @@ public class BaseUser implements UserEntity {
     @Override
     public void setUserPassword(String userPassword) {
         this.userPassword = userPassword;
+    }
+
+    public List<GroupEntity> getAssignedGroups() {
+        return assignedGroups;
+    }
+
+    public void addGroup(GroupEntity group) {
+        this.assignedGroups.add(group);
+    }
+
+    public void removeGroup(GroupEntity currentGroup) {
+        this.assignedGroups.removeIf(group -> group.getGroupName().equals(currentGroup.getGroupName()));
     }
 }

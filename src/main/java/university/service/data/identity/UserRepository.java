@@ -1,10 +1,10 @@
 package university.service.data.identity;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import university.service.domain.identity.UserEntity;
+import university.service.domain.identity.BaseUser;
 
-public interface UserRepository extends JpaRepository<UserEntity, Long> {
+public interface UserRepository extends JpaRepository<BaseUser, Long> {
 
-    UserEntity findByUsername(String username);
+    BaseUser findByUsername(String userLogin);
 
 }

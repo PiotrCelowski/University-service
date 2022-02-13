@@ -3,18 +3,33 @@
   display: flex;
 }
 .list-view .program-grid,
-.list-view .subject-grid {
+.list-view .subject-grid,
+.list-view .user-grid,
+.list-view .group-grid,
+.list-view .user-group-grid,
+.list-view .event-grid,
+.list-view .grade-grid {
   flex: 2;
 }
 .list-view .program-form,
-.list-view .subject-form {
+.list-view .subject-form,
+.list-view .user-form,
+.list-view .group-form,
+.list-view .addusertogroup-form,
+.list-view .event-form,
+.list-view .grade-form {
   flex: 1;
   padding: var(--lumo-space-m);
 }
 @media all and (max-width: 1100px) {
   .list-view.editing .toolbar,
   .list-view.editing .program-grid,
-  .list-view.editing .subject-grid {
+  .list-view.editing .subject-grid,
+  .list-view.editing .user-grid,
+  .list-view.editing .group-grid,
+  .list-view.editing .group-user-grid,
+  .list-view.editing .event-grid,
+  .list-view.editing .grade-grid {
   display: none;
   }
 }

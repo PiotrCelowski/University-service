@@ -8,12 +8,11 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import university.service.data.identity.UserRepository;
-import university.service.domain.identity.UserEntity;
+import university.service.domain.identity.*;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 @Service
 public class MyUserDetailService implements UserDetailsService {
@@ -46,7 +45,7 @@ public class MyUserDetailService implements UserDetailsService {
 
         @Override
         public String getPassword() {
-            return user.getPassword();
+            return user.getUserPassword();
         }
 
         @Override
@@ -77,12 +76,12 @@ public class MyUserDetailService implements UserDetailsService {
 
     @PostConstruct
     void createSomeUsers() {
-        UserEntity user = new UserEntity("user", "{noop}userpass", "USER");
-        UserEntity admin = new UserEntity("admin", "{noop}adminpass", "ADMIN");
-        UserEntity worker = new UserEntity("worker", "{noop}workerpass", "WORKER");
+        BaseUserDecorator user = new Student(new BaseUser("user"));
+        BaseUserDecorator admin = new Admin(new BaseUser("admin"));
+        BaseUserDecorator worker = new Teacher(new BaseUser("worker"));
 
-        userRepository.saveAndFlush(user);
-        userRepository.saveAndFlush(admin);
-        userRepository.saveAndFlush(worker);
+        userRepository.saveAndFlush(user.getBaseUser());
+        userRepository.saveAndFlush(admin.getBaseUser());
+        userRepository.saveAndFlush(worker.getBaseUser());
     }
 }

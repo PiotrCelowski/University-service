@@ -1,6 +1,7 @@
 package university.service.ui.users;
 
 import com.vaadin.flow.component.ClickEvent;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
@@ -11,33 +12,32 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import org.springframework.security.access.annotation.Secured;
 import university.service.application.identity.IdentityUseCase;
-import university.service.domain.identity.BaseUser;
+import university.service.domain.identity.GroupEntity;
 import university.service.ui.MainLayout;
-import university.service.ui.users.forms.UserForm;
+import university.service.ui.users.forms.GroupForm;
 
 @Secured("ADMIN")
-@Route(value="users", layout = MainLayout.class)
-@PageTitle("Users | University service")
-public class UserView extends VerticalLayout {
-    private Grid<BaseUser> grid = new Grid<>(BaseUser.class);
-    private BaseUser selectedUser;
-    private UserForm userForm;
+@Route(value="groups", layout = MainLayout.class)
+@PageTitle("Groups | University service")
+public class GroupView extends VerticalLayout {
+    private Grid<GroupEntity> grid = new Grid<>(GroupEntity.class);
+    private GroupEntity selectedGroup;
+    private GroupForm groupForm;
     private IdentityUseCase identityUseCase;
 
-    public UserView(IdentityUseCase identityUseCase) {
+    public GroupView(IdentityUseCase identityUseCase) {
         addClassName("list-view");
         setSizeFull();
         configureGrid();
         this.identityUseCase = identityUseCase;
 
-        userForm = new UserForm();
-        userForm.addListener(UserForm.SaveEvent.class, this::saveUserEntity);
-        userForm.addListener(UserForm.DeleteEvent.class, this::deleteUserEntity);
+        groupForm = new GroupForm();
+        groupForm.addListener(GroupForm.SaveEvent.class, this::saveGroupEntity);
 
-        FlexLayout content = new FlexLayout(grid, userForm);
+        FlexLayout content = new FlexLayout(grid, groupForm);
         content.setFlexGrow(2, grid);
-        content.setFlexGrow(1, userForm);
-        content.setFlexShrink(1, userForm);
+        content.setFlexGrow(1, groupForm);
+        content.setFlexShrink(1, groupForm);
         content.addClassNames("content", "gap-m");
         content.setSizeFull();
 
@@ -46,80 +46,76 @@ public class UserView extends VerticalLayout {
         updateList();
 
         closeEditor();
+
         grid.asSingleSelect().addValueChangeListener(event ->
-                setSelectedUser(event.getValue()));
+                setSelectedGroup(event.getValue()));
 
     }
 
     private void configureGrid() {
-        grid.addClassName("user-grid");
+        grid.addClassName("group-grid");
         grid.setSizeFull();
         grid.removeAllColumns();
-        grid.addColumn(BaseUser::getUsername).setHeader("User name");
-        grid.addColumn(BaseUser::getUserPassword).setHeader("User password");
-        grid.addColumn(BaseUser::getRole).setHeader("Role");
+        grid.addColumn(GroupEntity::getGroupName).setHeader("Group name");
         grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
     }
 
     private HorizontalLayout getToolbar() {
-        Button editUserButton = new Button("Add user");
+        Button editUserButton = new Button("Add group");
         editUserButton.addClickListener(this::handleForm);
-        Button removeUserButton = new Button("Remove user");
-        removeUserButton.addClickListener(this::handleForm);
+        Button removeUserButton = new Button("Remove group");
+        removeUserButton.addClickListener(this::deleteGroupEntity);
+        Button groupDetailsButton = new Button("Show group members");
+        groupDetailsButton.addClickListener(this::navigateToGroupDetails);
 
-        HorizontalLayout toolbar = new HorizontalLayout(editUserButton, removeUserButton);
+
+        HorizontalLayout toolbar = new HorizontalLayout(editUserButton, removeUserButton, groupDetailsButton);
         toolbar.addClassName("toolbar");
         return toolbar;
     }
 
     private void updateList() {
-        grid.setItems(identityUseCase.getAllUsers());
+        grid.setItems(identityUseCase.getAllGroups());
     }
 
     private void closeEditor() {
-        userForm.setUserEntity(null);
-        userForm.setVisible(false);
+        groupForm.setGroupEntity(null);
+        groupForm.setVisible(false);
         removeClassName("editing");
     }
 
-    private void saveUserEntity(UserForm.SaveEvent event) {
-        identityUseCase.createUser(event.getUserEntity().getUsername(), event.getUserEntity().getRole());
+    private void saveGroupEntity(GroupForm.SaveEvent event) {
+        identityUseCase.createGroup(event.getGroupEntity().getGroupName());
         updateList();
         closeEditor();
     }
 
-    private void deleteUserEntity(UserForm.DeleteEvent event) {
-        identityUseCase.removeUser(event.getUserEntity());
+    private void deleteGroupEntity(ClickEvent<Button> buttonClickEvent) {
+        identityUseCase.removeGroup(selectedGroup);
         updateList();
         closeEditor();
     }
 
-    public void setSelectedUser(BaseUser selectedUser) {
-        this.selectedUser = selectedUser;
-        editUserEntity(this.selectedUser);
-
+    public void setSelectedGroup(GroupEntity selectedGroup) {
+        this.selectedGroup = selectedGroup;
     }
 
-    public void editUserEntity(BaseUser baseUser) {
-        if (baseUser == null) {
-            closeEditor();
-        } else {
-            userForm.setUserEntity(baseUser);
-            userForm.setVisible(true);
-            addClassName("editing");
-        }
+    public void createGroupEntity() {
+        grid.asSingleSelect().clear();
+        groupForm.setGroupEntity(new GroupEntity());
+        groupForm.setVisible(true);
+        addClassName("editing");
     }
 
     private void handleForm(ClickEvent<Button> buttonClickEvent) {
-        if(!userForm.isVisible()) {
-            addUserEntity();
+        if(!groupForm.isVisible()) {
+            createGroupEntity();
         } else {
             closeEditor();
         }
     }
 
-    void addUserEntity() {
-        grid.asSingleSelect().clear();
-        editUserEntity(new BaseUser());
+    private void navigateToGroupDetails(ClickEvent<Button> buttonClickEvent) {
+        UI.getCurrent().navigate("group" + "/" + selectedGroup.getGroupName());
     }
 }

@@ -13,82 +13,62 @@ import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.shared.Registration;
 import university.service.domain.identity.BaseUser;
+import university.service.domain.identity.GroupEntity;
 
-public class UserForm extends FormLayout {
+public class AddUserToGroupForm extends FormLayout {
     TextField username = new TextField("User name");
-    TextField userPassword = new TextField("User password");
-    TextField role = new TextField("User role");
 
-    BaseUser user;
-    Binder<BaseUser> binder = new BeanValidationBinder<>(BaseUser.class);
+    GroupEntity selectedGroup;
+    BaseUser selectedUser;
 
-    Button save = new Button("Create");
-    Button delete = new Button("Delete");
+    Button add = new Button("Add user");
 
-    public UserForm() {
-        addClassName("user-form");
-        binder.bindInstanceFields(this);
+    public AddUserToGroupForm() {
+        addClassName("addusertogroup-form");
         username.setEnabled(true);
         username.setReadOnly(false);
-        userPassword.setEnabled(true);
-        userPassword.setReadOnly(false);
-        role.setEnabled(true);
-        role.setReadOnly(false);
 
-        add(username, userPassword, role, createButtonsLayout());
+        add(username, createButtonsLayout());
     }
 
     private HorizontalLayout createButtonsLayout() {
-        save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        delete.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        save.addClickShortcut(Key.ENTER);
+        add.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        add.addClickShortcut(Key.ENTER);
 
-        save.addClickListener(event -> validateAndSave());
-        delete.addClickListener(event -> fireEvent(new DeleteEvent(this, this.user)));
+        add.addClickListener(event -> validateAndAdd());
 
-        save.addClickShortcut(Key.ENTER);
-
-        binder.addStatusChangeListener(e -> save.setEnabled(binder.isValid()));
-
-        return new HorizontalLayout(save, delete);
+        return new HorizontalLayout(add);
     }
 
-    public void setUserEntity(BaseUser baseUser) {
-        this.user = baseUser;
-        binder.readBean(this.user);
+    public void setSelectedGroup(GroupEntity selectedGroup) {
+        this.selectedGroup = selectedGroup;
     }
 
-    private void validateAndSave() {
-        try {
-            binder.writeBean(this.user);
-            fireEvent(new SaveEvent(this, this.user));
-        } catch (ValidationException e) {
-            e.printStackTrace();
-        }
+    public void setSelectedUser(BaseUser user) {
+        this.selectedUser = (user);
+    }
+
+    private void validateAndAdd() {
+        fireEvent(new AddUserToGroupEvent(this, this.username.getValue()));
     }
 
     //Events
-    public abstract static class UserFormEvent extends ComponentEvent<UserForm> {
-        private BaseUser user;
+    public abstract static class AddUserToGroupFormEvent extends ComponentEvent<AddUserToGroupForm> {
+        private String userName;
 
-        public UserFormEvent(UserForm source, BaseUser user) {
-            super(source, true);
-            this.user = user;
+        public AddUserToGroupFormEvent(AddUserToGroupForm source, String userName) {
+            super(source, false);
+            this.userName = userName;
         }
 
-        public BaseUser getUserEntity() {
-            return user;
-        }
-    }
-
-    public static class SaveEvent extends UserForm.UserFormEvent {
-        SaveEvent(UserForm source, BaseUser user) {
-            super(source, user);
+        public String getUserName() {
+            return userName;
         }
     }
-    public static class DeleteEvent extends  UserForm.UserFormEvent {
-        DeleteEvent(UserForm source, BaseUser user) {
-            super(source, user);
+
+    public static class AddUserToGroupEvent extends AddUserToGroupForm.AddUserToGroupFormEvent {
+        AddUserToGroupEvent(AddUserToGroupForm source, String userName) {
+            super(source, userName);
         }
     }
 

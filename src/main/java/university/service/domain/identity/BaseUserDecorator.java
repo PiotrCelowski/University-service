@@ -46,7 +46,7 @@ public class BaseUserDecorator implements UserEntity {
     }
 
     @Override
-    public Long getId() {
-        return baseUserWrapped.getId();
+    public Long getUserId() {
+        return baseUserWrapped.getUserId();
     }
 }

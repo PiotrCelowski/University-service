@@ -22,7 +22,6 @@ public class ProgramForm extends FormLayout {
     Binder<ProgramEntity> binder = new BeanValidationBinder<>(ProgramEntity.class);
 
     Button save = new Button("Save");
-    Button delete = new Button("Delete");
 
     public ProgramForm() {
         addClassName("program-form");
@@ -37,17 +36,15 @@ public class ProgramForm extends FormLayout {
 
     private HorizontalLayout createButtonsLayout() {
         save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        delete.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         save.addClickShortcut(Key.ENTER);
 
         save.addClickListener(event -> validateAndSave());
-        delete.addClickListener(event -> fireEvent(new DeleteEvent(this, this.programEntity)));
 
         save.addClickShortcut(Key.ENTER);
 
         binder.addStatusChangeListener(e -> save.setEnabled(binder.isValid()));
 
-        return new HorizontalLayout(save, delete);
+        return new HorizontalLayout(save);
     }
 
     public void setProgramEntity(ProgramEntity programEntity) {
@@ -80,11 +77,6 @@ public class ProgramForm extends FormLayout {
 
     public static class SaveEvent extends ProgramFormEvent {
         SaveEvent(ProgramForm source, ProgramEntity programEntity) {
-            super(source, programEntity);
-        }
-    }
-    public static class DeleteEvent extends ProgramFormEvent {
-        DeleteEvent(ProgramForm source, ProgramEntity programEntity) {
             super(source, programEntity);
         }
     }

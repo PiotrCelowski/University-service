@@ -42,7 +42,6 @@ public class ProgramView extends VerticalLayout {
 
         programForm = new ProgramForm();
         programForm.addListener(ProgramForm.SaveEvent.class, this::saveProgramEntity);
-        programForm.addListener(ProgramForm.DeleteEvent.class, this::deleteProgramEntity);
 
         FlexLayout content = new FlexLayout(grid, programForm);
         content.setFlexGrow(2, grid);
@@ -74,13 +73,15 @@ public class ProgramView extends VerticalLayout {
 
     private HorizontalLayout getToolbar() {
         Button addProgramButton = new Button("Add program");
+        Button removeProgramButton = new Button("Remove program");
         Button programDetailsButton = new Button("Show program details");
         addProgramButton.addClickListener(this::handleForm);
+        removeProgramButton.addClickListener(this::deleteProgramEntity);
         programDetailsButton.addClickListener(this::navigateToProgramDetails);
         HorizontalLayout toolbar = new HorizontalLayout();
 
         if(currentUserAuthorities != null && currentUserAuthorities.stream().anyMatch(a -> a.getAuthority().equals("WORKER"))) {
-            toolbar.add(addProgramButton, programDetailsButton);
+            toolbar.add(addProgramButton, removeProgramButton, programDetailsButton);
         } else {
             toolbar.add(programDetailsButton);
         }
@@ -108,19 +109,11 @@ public class ProgramView extends VerticalLayout {
         grid.setItems(programUseCase.getAllPrograms());
     }
 
-    public void editProgramEntity(ProgramEntity programEntity) {
-        if (programEntity == null) {
-            closeEditor();
-        } else {
-            programForm.setProgramEntity(programEntity);
-            programForm.setVisible(true);
-            addClassName("editing");
-        }
-    }
-
-    void addProgramEntity() {
+    public void addProgramEntity() {
         grid.asSingleSelect().clear();
-        editProgramEntity(new ProgramEntity());
+        programForm.setProgramEntity(new ProgramEntity());
+        programForm.setVisible(true);
+        addClassName("editing");
     }
 
     private void closeEditor() {
@@ -135,23 +128,14 @@ public class ProgramView extends VerticalLayout {
         closeEditor();
     }
 
-    private void deleteProgramEntity(ProgramForm.DeleteEvent event) {
-        programUseCase.deleteProgram(event.getProgramEntity());
+    private void deleteProgramEntity(ClickEvent<Button> buttonClickEvent) {
+        programUseCase.deleteProgram(this.selectedProgram);
         updateList();
         closeEditor();
     }
 
-    public ProgramEntity getSelectedProgram() {
-        return selectedProgram;
-    }
-
     public void setSelectedProgram(ProgramEntity selectedProgram) {
         this.selectedProgram = selectedProgram;
-
-        if(currentUserAuthorities != null && currentUserAuthorities.stream().anyMatch(a -> a.getAuthority().equals("WORKER"))) {
-            editProgramEntity(this.selectedProgram);
-        }
-
     }
 
 }
