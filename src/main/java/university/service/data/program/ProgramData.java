@@ -22,6 +22,8 @@ public class ProgramData {
         getProgramByName("Physics").addSubject(new SubjectEntity("1st subject", "Pierwszy"));
         getProgramByName("Physics").addSubject(new SubjectEntity("2nd subject", "Drugi"));
 
+        getProgramByName("Polish").addSubject(new SubjectEntity("2nd subject", "Drugi"));
+
     }
 
     @PostConstruct

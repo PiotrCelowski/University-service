@@ -13,6 +13,7 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import university.service.application.event.EventUseCase;
 import university.service.application.grade.GradeUseCase;
 import university.service.application.program.ProgramUseCase;
@@ -22,6 +23,7 @@ import university.service.domain.program.SubjectEntity;
 import university.service.security.SecurityService;
 import university.service.ui.MainLayout;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 @Secured({"WORKER","USER"})
@@ -37,9 +39,11 @@ public class SubjectDetailsView extends VerticalLayout implements HasUrlParamete
     private EventUseCase eventUseCase;
     private GradeUseCase gradeUseCase;
     private Collection<? extends GrantedAuthority> currentUserAuthorities;
+    private UserDetails userDetails;
 
     public SubjectDetailsView(GradeUseCase gradeUseCase, EventUseCase eventUseCase, ProgramUseCase programUseCase, SecurityService securityService) {
         this.currentUserAuthorities = securityService.getAuthenticatedUser().getAuthorities();
+        this.userDetails = securityService.getAuthenticatedUser();
         this.programUseCase = programUseCase;
         this.gradeUseCase = gradeUseCase;
         this.eventUseCase = eventUseCase;
@@ -76,15 +80,14 @@ public class SubjectDetailsView extends VerticalLayout implements HasUrlParamete
         gradeGrid.addClassName("grade-grid");
         gradeGrid.setSizeFull();
         gradeGrid.removeAllColumns();
-        gradeGrid.addColumn(GradeEntity::getStudent).setHeader("Student");
-        gradeGrid.addColumn(GradeEntity::getTeacher).setHeader("Teacher");
+        gradeGrid.addColumn(GradeEntity::getStudentName).setHeader("Student");
+        gradeGrid.addColumn(GradeEntity::getTeacherName).setHeader("Teacher");
         gradeGrid.addColumn(GradeEntity::getGrade).setHeader("Grade");
         gradeGrid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
     }
 
     private HorizontalLayout getEventToolbar() {
         HorizontalLayout toolbar = new HorizontalLayout();
-
         if(currentUserAuthorities != null && currentUserAuthorities.stream().anyMatch(a -> a.getAuthority().equals("WORKER"))) {
             Button addEventButton = new Button("Add event");
             Button removeEventButton = new Button("Remove event");
@@ -135,7 +138,7 @@ public class SubjectDetailsView extends VerticalLayout implements HasUrlParamete
     }
 
     private void updateLists() {
-        gradeGrid.setItems();
+        gradeGrid.setItems(gradeUseCase.loadAllGradesForSubject(this.selectedSubject, this.userDetails.getUsername()));
         eventGrid.setItems();
     }
 
