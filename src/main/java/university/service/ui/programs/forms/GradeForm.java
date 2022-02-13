@@ -1,4 +1,4 @@
-package university.service.ui.users.forms;
+package university.service.ui.programs.forms;
 
 import com.vaadin.flow.component.ComponentEvent;
 import com.vaadin.flow.component.ComponentEventListener;
@@ -7,82 +7,69 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.shared.Registration;
-import university.service.domain.identity.BaseUser;
+import university.service.domain.event.EventEntity;
+import university.service.domain.grade.GradeEntity;
 
-public class UserForm extends FormLayout {
-    TextField username = new TextField("User name");
-    TextField role = new TextField("User role");
+public class GradeForm extends FormLayout {
+    IntegerField grade = new IntegerField("Grade");
+    private GradeEntity selectedGrade;
+    Binder<GradeEntity> binder = new BeanValidationBinder<>(GradeEntity.class);
+    Button save = new Button("Save");
 
-    BaseUser user;
-    Binder<BaseUser> binder = new BeanValidationBinder<>(BaseUser.class);
-
-    Button save = new Button("Create");
-
-    public UserForm() {
-        addClassName("user-form");
+    public GradeForm() {
+        addClassName("grade-form");
         binder.bindInstanceFields(this);
-        username.setEnabled(true);
-        username.setReadOnly(false);
-        role.setEnabled(true);
-        role.setReadOnly(false);
-
-        add(username, role, createButtonsLayout());
+        grade.setEnabled(true);
+        grade.setReadOnly(false);
+        add(grade, createButtonsLayout());
     }
 
     private HorizontalLayout createButtonsLayout() {
         save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         save.addClickShortcut(Key.ENTER);
-
         save.addClickListener(event -> validateAndSave());
-
         save.addClickShortcut(Key.ENTER);
-
         binder.addStatusChangeListener(e -> save.setEnabled(binder.isValid()));
-
         return new HorizontalLayout(save);
     }
 
-    public void setUserEntity(BaseUser baseUser) {
-        this.user = baseUser;
-        binder.readBean(this.user);
+    public void setSelectedEvent(GradeEntity grade) {
+        this.selectedGrade = grade;
+        binder.readBean(this.selectedGrade);
     }
 
     private void validateAndSave() {
         try {
-            binder.writeBean(this.user);
-            fireEvent(new SaveEvent(this, this.user));
+            binder.writeBean(this.selectedGrade);
+            fireEvent(new SaveEvent(this, this.selectedGrade));
         } catch (ValidationException e) {
             e.printStackTrace();
         }
     }
 
     //Events
-    public abstract static class UserFormEvent extends ComponentEvent<UserForm> {
-        private BaseUser user;
+    public abstract static class GradeFormEvent extends ComponentEvent<GradeForm> {
+        private GradeEntity gradeEntity;
 
-        public UserFormEvent(UserForm source, BaseUser user) {
+        public GradeFormEvent(GradeForm source, GradeEntity gradeEntity) {
             super(source, true);
-            this.user = user;
+            this.gradeEntity = gradeEntity;
         }
 
-        public BaseUser getUserEntity() {
-            return user;
+        public GradeEntity getGradeEntity() {
+            return this.gradeEntity;
         }
     }
 
-    public static class SaveEvent extends UserForm.UserFormEvent {
-        SaveEvent(UserForm source, BaseUser user) {
-            super(source, user);
-        }
-    }
-    public static class DeleteEvent extends  UserForm.UserFormEvent {
-        DeleteEvent(UserForm source, BaseUser user) {
-            super(source, user);
+    public static class SaveEvent extends GradeFormEvent {
+        SaveEvent(GradeForm source, GradeEntity gradeEntity) {
+            super(source, gradeEntity);
         }
     }
 

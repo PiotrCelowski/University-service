@@ -1,18 +1,17 @@
 package university.service.domain.grade;
 
-import org.springframework.stereotype.Component;
-import university.service.domain.identity.UserEntity;
+import university.service.domain.identity.BaseUser;
 
 public class GradeEntity {
-    private UserEntity student;
-    private UserEntity teacher;
+    private BaseUser student;
+    private BaseUser teacher;
     private int grade;
 
-    public UserEntity getStudent() {
+    public BaseUser getStudent() {
         return student;
     }
 
-    public UserEntity getTeacher() {
+    public BaseUser getTeacher() {
         return teacher;
     }
 

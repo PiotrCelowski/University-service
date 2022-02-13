@@ -14,6 +14,7 @@ import org.springframework.security.core.GrantedAuthority;
 import university.service.security.SecurityService;
 import university.service.ui.programs.ProgramView;
 import university.service.ui.programs.SubjectView;
+import university.service.ui.users.GroupView;
 import university.service.ui.users.UserView;
 
 import java.util.Collection;
@@ -48,10 +49,12 @@ public class MainLayout extends AppLayout {
         RouterLink programsMenuLink = new RouterLink("Programs", ProgramView.class);
         RouterLink subjectMenuLink = new RouterLink("Subjects", SubjectView.class);
         RouterLink userMenuLink = new RouterLink("Users", UserView.class);
+        RouterLink groupMenuLink = new RouterLink("Groups", GroupView.class);
 
         programsMenuLink.setHighlightCondition(HighlightConditions.sameLocation());
         subjectMenuLink.setHighlightCondition(HighlightConditions.sameLocation());
         userMenuLink.setHighlightCondition(HighlightConditions.sameLocation());
+        groupMenuLink.setHighlightCondition(HighlightConditions.sameLocation());
 
         if (currentUserAuthorities != null
                 && (currentUserAuthorities.stream().anyMatch(a -> a.getAuthority().equals("WORKER")))
@@ -59,7 +62,7 @@ public class MainLayout extends AppLayout {
             addToDrawer(new VerticalLayout(programsMenuLink, subjectMenuLink));
         } else if (currentUserAuthorities != null
                 && currentUserAuthorities.stream().anyMatch(a -> a.getAuthority().equals("ADMIN"))) {
-            addToDrawer(new VerticalLayout(userMenuLink));
+            addToDrawer(new VerticalLayout(userMenuLink, groupMenuLink));
         }
     }
 }

@@ -43,7 +43,6 @@ public class SubjectView extends VerticalLayout {
 
         subjectForm = new SubjectForm();
         subjectForm.addListener(SubjectForm.SaveEvent.class, this::saveSubjectEntity);
-        subjectForm.addListener(SubjectForm.DeleteEvent.class, this::deleteSubjectEntity);
 
         FlexLayout content = new FlexLayout(grid, subjectForm);
         content.setFlexGrow(2, grid);
@@ -64,10 +63,6 @@ public class SubjectView extends VerticalLayout {
 
     private void setSelectedSubject(SubjectEntity selectedSubject) {
         this.selectedSubject = selectedSubject;
-
-        if(currentUserAuthorities != null && currentUserAuthorities.stream().anyMatch(a -> a.getAuthority().equals("WORKER"))) {
-            editSubjectEntity(this.selectedSubject);
-        }
     }
 
     private void configureGrid() {
@@ -91,7 +86,7 @@ public class SubjectView extends VerticalLayout {
             Button removeSubjectButton = new Button("Remove subject");
 
             addSubjectButton.addClickListener(this::handleForm);
-            removeSubjectButton.addClickListener(this::handleForm);
+            removeSubjectButton.addClickListener(this::deleteSubjectEntity);
             toolbar.add(addSubjectButton, removeSubjectButton, showSubjectDetailsButton);
         } else {
             toolbar.add(showSubjectDetailsButton);
@@ -119,19 +114,16 @@ public class SubjectView extends VerticalLayout {
         closeEditor();
     }
 
-    private void deleteSubjectEntity(SubjectForm.DeleteEvent event) {
+    private void deleteSubjectEntity(ClickEvent<Button> buttonClickEvent) {
         updateList();
         closeEditor();
     }
 
-    public void editSubjectEntity(SubjectEntity subjectEntity) {
-        if (subjectEntity == null) {
-            closeEditor();
-        } else {
-            subjectForm.setSubjectEntity(subjectEntity);
-            subjectForm.setVisible(true);
-            addClassName("editing");
-        }
+    public void addSubjectEntity() {
+        grid.asSingleSelect().clear();
+        subjectForm.setSubjectEntity(new SubjectEntity());
+        subjectForm.setVisible(true);
+        addClassName("editing");
     }
 
     private void handleForm(ClickEvent<Button> buttonClickEvent) {
@@ -140,11 +132,6 @@ public class SubjectView extends VerticalLayout {
         } else {
             closeEditor();
         }
-    }
-
-    void addSubjectEntity() {
-        grid.asSingleSelect().clear();
-        editSubjectEntity(new SubjectEntity());
     }
 
     private void closeEditor() {

@@ -9,30 +9,29 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import org.apache.catalina.User;
 import org.springframework.security.access.annotation.Secured;
-import university.service.domain.identity.UserEntity;
-import university.service.domain.program.ProgramEntity;
+import university.service.application.identity.IdentityUseCase;
+import university.service.domain.identity.BaseUser;
 import university.service.ui.MainLayout;
-import university.service.ui.programs.forms.ProgramForm;
 import university.service.ui.users.forms.UserForm;
 
 @Secured("ADMIN")
 @Route(value="users", layout = MainLayout.class)
 @PageTitle("Users | University service")
 public class UserView extends VerticalLayout {
-    private Grid<UserEntity> grid = new Grid<>(UserEntity.class);
-    private UserEntity selectedUser;
+    private Grid<BaseUser> grid = new Grid<>(BaseUser.class);
+    private BaseUser selectedUser;
     private UserForm userForm;
+    private IdentityUseCase identityUseCase;
 
-    public UserView() {
+    public UserView(IdentityUseCase identityUseCase) {
         addClassName("list-view");
         setSizeFull();
         configureGrid();
+        this.identityUseCase = identityUseCase;
 
         userForm = new UserForm();
         userForm.addListener(UserForm.SaveEvent.class, this::saveUserEntity);
-        userForm.addListener(UserForm.DeleteEvent.class, this::deleteUserEntity);
 
         FlexLayout content = new FlexLayout(grid, userForm);
         content.setFlexGrow(2, grid);
@@ -55,9 +54,9 @@ public class UserView extends VerticalLayout {
         grid.addClassName("user-grid");
         grid.setSizeFull();
         grid.removeAllColumns();
-        grid.addColumn(UserEntity::getUsername).setHeader("User name");
-        grid.addColumn(UserEntity::getPassword).setHeader("User password");
-        grid.addColumn(UserEntity::getRole).setHeader("Role");
+        grid.addColumn(BaseUser::getUsername).setHeader("User name");
+        grid.addColumn(BaseUser::getUserPassword).setHeader("User password");
+        grid.addColumn(BaseUser::getRole).setHeader("Role");
         grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
     }
 
@@ -65,7 +64,7 @@ public class UserView extends VerticalLayout {
         Button editUserButton = new Button("Add user");
         editUserButton.addClickListener(this::handleForm);
         Button removeUserButton = new Button("Remove user");
-        removeUserButton.addClickListener(this::handleForm);
+        removeUserButton.addClickListener(this::deleteUserEntity);
 
         HorizontalLayout toolbar = new HorizontalLayout(editUserButton, removeUserButton);
         toolbar.addClassName("toolbar");
@@ -73,7 +72,7 @@ public class UserView extends VerticalLayout {
     }
 
     private void updateList() {
-        grid.setItems();
+        grid.setItems(identityUseCase.getAllUsers());
     }
 
     private void closeEditor() {
@@ -83,29 +82,26 @@ public class UserView extends VerticalLayout {
     }
 
     private void saveUserEntity(UserForm.SaveEvent event) {
+        identityUseCase.createUser(event.getUserEntity().getUsername(), event.getUserEntity().getRole());
         updateList();
         closeEditor();
     }
 
-    private void deleteUserEntity(UserForm.DeleteEvent event) {
+    private void deleteUserEntity(ClickEvent<Button> buttonClickEvent) {
+        identityUseCase.removeUser(this.selectedUser);
         updateList();
         closeEditor();
     }
 
-    public void setSelectedUser(UserEntity selectedUser) {
+    public void setSelectedUser(BaseUser selectedUser) {
         this.selectedUser = selectedUser;
-        editUserEntity(this.selectedUser);
-
     }
 
-    public void editUserEntity(UserEntity userEntity) {
-        if (userEntity == null) {
-            closeEditor();
-        } else {
-            userForm.setUserEntity(userEntity);
-            userForm.setVisible(true);
-            addClassName("editing");
-        }
+    public void addUserEntity() {
+        grid.asSingleSelect().clear();
+        userForm.setUserEntity(new BaseUser());
+        userForm.setVisible(true);
+        addClassName("editing");
     }
 
     private void handleForm(ClickEvent<Button> buttonClickEvent) {
@@ -114,10 +110,5 @@ public class UserView extends VerticalLayout {
         } else {
             closeEditor();
         }
-    }
-
-    void addUserEntity() {
-        grid.asSingleSelect().clear();
-        editUserEntity(new UserEntity());
     }
 }

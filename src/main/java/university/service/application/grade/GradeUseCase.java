@@ -4,6 +4,8 @@ import org.springframework.stereotype.Component;
 import university.service.domain.grade.GradeEntity;
 import university.service.domain.program.SubjectEntity;
 
+import javax.annotation.PostConstruct;
+
 @Component
 public class GradeUseCase {
 
@@ -13,4 +15,5 @@ public class GradeUseCase {
     public GradeEntity getAllGrades(SubjectEntity selectedSubject) {
         return null;
     }
+
 }

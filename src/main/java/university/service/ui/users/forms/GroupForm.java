@@ -12,26 +12,23 @@ import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.shared.Registration;
-import university.service.domain.identity.BaseUser;
+import university.service.domain.identity.GroupEntity;
 
-public class UserForm extends FormLayout {
-    TextField username = new TextField("User name");
-    TextField role = new TextField("User role");
+public class GroupForm extends FormLayout {
+    TextField groupName = new TextField("Group name");
 
-    BaseUser user;
-    Binder<BaseUser> binder = new BeanValidationBinder<>(BaseUser.class);
+    GroupEntity group;
+    Binder<GroupEntity> binder = new BeanValidationBinder<>(GroupEntity.class);
 
     Button save = new Button("Create");
 
-    public UserForm() {
-        addClassName("user-form");
+    public GroupForm() {
+        addClassName("group-form");
         binder.bindInstanceFields(this);
-        username.setEnabled(true);
-        username.setReadOnly(false);
-        role.setEnabled(true);
-        role.setReadOnly(false);
+        groupName.setEnabled(true);
+        groupName.setReadOnly(false);
 
-        add(username, role, createButtonsLayout());
+        add(groupName, createButtonsLayout());
     }
 
     private HorizontalLayout createButtonsLayout() {
@@ -47,42 +44,37 @@ public class UserForm extends FormLayout {
         return new HorizontalLayout(save);
     }
 
-    public void setUserEntity(BaseUser baseUser) {
-        this.user = baseUser;
-        binder.readBean(this.user);
+    public void setGroupEntity(GroupEntity groupEntity) {
+        this.group = groupEntity;
+        binder.readBean(this.group);
     }
 
     private void validateAndSave() {
         try {
-            binder.writeBean(this.user);
-            fireEvent(new SaveEvent(this, this.user));
+            binder.writeBean(this.group);
+            fireEvent(new SaveEvent(this, this.group));
         } catch (ValidationException e) {
             e.printStackTrace();
         }
     }
 
     //Events
-    public abstract static class UserFormEvent extends ComponentEvent<UserForm> {
-        private BaseUser user;
+    public abstract static class UserFormEvent extends ComponentEvent<GroupForm> {
+        private GroupEntity group;
 
-        public UserFormEvent(UserForm source, BaseUser user) {
+        public UserFormEvent(GroupForm source, GroupEntity group) {
             super(source, true);
-            this.user = user;
+            this.group = group;
         }
 
-        public BaseUser getUserEntity() {
-            return user;
+        public GroupEntity getGroupEntity() {
+            return group;
         }
     }
 
-    public static class SaveEvent extends UserForm.UserFormEvent {
-        SaveEvent(UserForm source, BaseUser user) {
-            super(source, user);
-        }
-    }
-    public static class DeleteEvent extends  UserForm.UserFormEvent {
-        DeleteEvent(UserForm source, BaseUser user) {
-            super(source, user);
+    public static class SaveEvent extends GroupForm.UserFormEvent {
+        SaveEvent(GroupForm source, GroupEntity group) {
+            super(source, group);
         }
     }
 
