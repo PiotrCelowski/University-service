@@ -21,6 +21,10 @@ public class MyUserDetailService implements UserDetailsService {
     @Autowired
     private UserRepository userRepository;
 
+    public List<UserEntity> findUser(String stringFilter) {
+        return userRepository.search(stringFilter);
+    }
+
     @Override
     public UserDetails loadUserByUsername(String username) {
         UserEntity user = userRepository.findByUsername(username);
@@ -78,11 +82,14 @@ public class MyUserDetailService implements UserDetailsService {
     @PostConstruct
     void createSomeUsers() {
         UserEntity user = new UserEntity("user", "{noop}userpass", "USER");
+        UserEntity user2 = new UserEntity("Jan Kowalski", "{noop}userpass1", "USER");
         UserEntity admin = new UserEntity("admin", "{noop}adminpass", "ADMIN");
         UserEntity worker = new UserEntity("worker", "{noop}workerpass", "WORKER");
 
         userRepository.saveAndFlush(user);
+        userRepository.saveAndFlush(user2);
         userRepository.saveAndFlush(admin);
         userRepository.saveAndFlush(worker);
+
     }
 }

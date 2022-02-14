@@ -40,4 +40,9 @@ public class UserEntity {
     public String getRole() {
         return role;
     }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
 }

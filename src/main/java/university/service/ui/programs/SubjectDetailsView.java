@@ -19,11 +19,14 @@ import university.service.application.grade.GradeUseCase;
 import university.service.application.program.ProgramUseCase;
 import university.service.domain.event.EventEntity;
 import university.service.domain.grade.GradeEntity;
+import university.service.domain.program.ProgramEntity;
 import university.service.domain.program.SubjectEntity;
+import university.service.security.MyUserDetailService;
 import university.service.security.SecurityService;
 import university.service.ui.MainLayout;
+import university.service.ui.programs.forms.GradeForm;
+import university.service.ui.programs.forms.ProgramForm;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
 @Secured({"WORKER","USER"})
@@ -38,12 +41,16 @@ public class SubjectDetailsView extends VerticalLayout implements HasUrlParamete
     private ProgramUseCase programUseCase;
     private EventUseCase eventUseCase;
     private GradeUseCase gradeUseCase;
+    private GradeForm gradeForm;
     private Collection<? extends GrantedAuthority> currentUserAuthorities;
     private UserDetails userDetails;
+    MyUserDetailService myUserDetailService;
 
-    public SubjectDetailsView(GradeUseCase gradeUseCase, EventUseCase eventUseCase, ProgramUseCase programUseCase, SecurityService securityService) {
+    public SubjectDetailsView(GradeUseCase gradeUseCase, EventUseCase eventUseCase, ProgramUseCase programUseCase, SecurityService securityService,
+                              MyUserDetailService myUserDetailService) {
         this.currentUserAuthorities = securityService.getAuthenticatedUser().getAuthorities();
         this.userDetails = securityService.getAuthenticatedUser();
+        this.myUserDetailService = myUserDetailService;
         this.programUseCase = programUseCase;
         this.gradeUseCase = gradeUseCase;
         this.eventUseCase = eventUseCase;
@@ -52,12 +59,20 @@ public class SubjectDetailsView extends VerticalLayout implements HasUrlParamete
         setSizeFull();
         configureGrids();
 
+        gradeForm = new GradeForm(securityService.getAuthenticatedUser(), myUserDetailService);
+        gradeForm.addListener(GradeForm.SaveEvent.class, this::saveGradeEntity);
+        gradeForm.addListener(GradeForm.DeleteEvent.class, this::deleteGradeEntity);
+
         eventLayout.add(getEventToolbar(), eventGrid);
         gradeLayout.add(getGradeToolbar(), gradeGrid);
 
-        FlexLayout content = new FlexLayout(eventLayout, gradeLayout);
+        FlexLayout content = new FlexLayout(eventLayout, gradeLayout, gradeForm);
         content.setFlexGrow(2, eventLayout);
         content.setFlexGrow(2, gradeLayout);
+
+        content.setFlexGrow(1, gradeForm);
+        content.setFlexShrink(1, gradeForm);
+
         content.addClassNames("content", "gap-m");
         content.setSizeFull();
 
@@ -116,6 +131,26 @@ public class SubjectDetailsView extends VerticalLayout implements HasUrlParamete
     }
 
     private void handleGradeForm(ClickEvent<Button> buttonClickEvent) {
+        if(!gradeForm.isVisible()) {
+            addGradeEntity();
+        } else {
+            closeEditor();
+        }
+    }
+
+    void addGradeEntity() {
+        gradeGrid.asSingleSelect().clear();
+        editGradeEntity(new GradeEntity());
+    }
+
+    public void editGradeEntity(GradeEntity gradeEntity) {
+        if (gradeEntity == null) {
+            closeEditor();
+        } else {
+            gradeForm.setGradeEntity(gradeEntity);
+            gradeForm.setVisible(true);
+            addClassName("editing");
+        }
     }
 
     private void handleEventForm(ClickEvent<Button> buttonClickEvent) {
@@ -128,17 +163,42 @@ public class SubjectDetailsView extends VerticalLayout implements HasUrlParamete
     }
 
     private void setSelectedGrade(GradeEntity value) {
+        if(currentUserAuthorities != null && currentUserAuthorities.stream().anyMatch(a -> a.getAuthority().equals("WORKER"))) {
+            editGradeEntity(value);
+        }
+    }
+
+    private void saveGradeEntity(GradeForm.SaveEvent event) {
+        gradeUseCase.saveGrade(this.selectedSubject, event.getGradeEntity());
+        updateLists();
+        closeEditor();
+    }
+
+    private void deleteGradeEntity(GradeForm.DeleteEvent event) {
+        gradeUseCase.deleteGrade(this.selectedSubject, event.getGradeEntity());
+        updateLists();
+        closeEditor();
     }
 
     private void setSelectedEvent(EventEntity value) {
     }
 
     private void closeEditor() {
-
+        gradeForm.setGradeEntity(null);
+        gradeForm.setVisible(false);
+        removeClassName("editing");
     }
 
     private void updateLists() {
-        gradeGrid.setItems(gradeUseCase.loadAllGradesForSubject(this.selectedSubject, this.userDetails.getUsername()));
+        String authority = "unknown";
+        if(currentUserAuthorities != null && currentUserAuthorities.stream().anyMatch(a -> a.getAuthority().equals("WORKER"))){
+            authority = "WORKER";
+        }
+        else if(currentUserAuthorities != null && currentUserAuthorities.stream().anyMatch(a -> a.getAuthority().equals("USER"))){
+            authority = "USER";
+        }
+
+        gradeGrid.setItems(gradeUseCase.loadAllGradesForSubject(this.selectedSubject, this.userDetails.getUsername(),  authority));
         eventGrid.setItems();
     }
 

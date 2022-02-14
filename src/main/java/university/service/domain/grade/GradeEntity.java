@@ -3,7 +3,6 @@ package university.service.domain.grade;
 import university.service.domain.identity.UserEntity;
 import university.service.domain.program.SubjectEntity;
 
-import java.util.ArrayList;
 
 public class GradeEntity {
     private SubjectEntity subject;
@@ -18,27 +17,60 @@ public class GradeEntity {
         this.grade = grade;
     }
 
+    public GradeEntity(){
+
+    }
+
+    public void setSubject(SubjectEntity subject) {
+        this.subject = subject;
+    }
+
     public UserEntity getStudent() {
         return student;
     }
 
-    public String getStudentName() {
-        return student.getUsername();
-    }
-
-    public String getTeacherName() {
-        return teacher.getUsername();
+    public void setStudent(UserEntity student) {
+        this.student = student;
     }
 
     public UserEntity getTeacher() {
         return teacher;
     }
 
+    public void setTeacher(UserEntity teacher) {
+        this.teacher = teacher;
+    }
+
+    public String getStudentName() {
+        if(student == null)
+            return "";
+        return student.getUsername();
+    }
+    public String getTeacherName() {
+        if(teacher == null)
+            return "";
+        return teacher.getUsername();
+    }
+
+
     public int getGrade() {
         return grade;
     }
 
-    public SubjectEntity getSubject(){return subject;}
-    
+    public void setGrade(int grade) {
+        this.grade = grade;
+    }
 
+    public SubjectEntity getSubject(){return subject;}
+
+    public void setTeacherName(String s) {
+        if(teacher == null)
+            teacher = new UserEntity(s, "", "WORKER");
+        teacher.setUsername(s);
+    }
+    public void setStudentName(String s) {
+        if(student == null)
+            student = new UserEntity(s, "", "USER");
+        student.setUsername(s);
+    }
 }

@@ -14,7 +14,15 @@ public class GradeUseCase {
         this.gradeData = gradeData;
     }
 
-    public List<GradeEntity> loadAllGradesForSubject(SubjectEntity selectedSubject, String username) {
-        return gradeData.loadAllGradesForSubject(selectedSubject, username);
+    public List<GradeEntity> loadAllGradesForSubject(SubjectEntity selectedSubject, String username, String userRole) {
+        return gradeData.loadAllGradesForSubject(selectedSubject, username, userRole);
+    }
+
+    public void saveGrade(SubjectEntity subjectEntity, GradeEntity gradeEntity) {
+        gradeData.saveGrade(subjectEntity, gradeEntity);
+    }
+
+    public void deleteGrade(SubjectEntity subjectEntity, GradeEntity gradeEntity) {
+        gradeData.deleteGrade(subjectEntity, gradeEntity);
     }
 }

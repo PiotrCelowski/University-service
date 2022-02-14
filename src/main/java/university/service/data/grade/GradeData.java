@@ -13,15 +13,8 @@ import java.util.List;
 @Component
 public class GradeData {
     ArrayList<GradeEntity> allGrades = new ArrayList<>();
-    ArrayList<SubjectEntity> allSubjects = new ArrayList<>();
 
 
-    @PostConstruct
-    private void createDummySubjects() {
-        allSubjects.add(new SubjectEntity("Subject1", "aaaa"));
-        allSubjects.add(new SubjectEntity("Subject2", "aaa"));
-        allSubjects.add(new SubjectEntity("Subject3", "aaa"));
-    }
     @PostConstruct
     private void createDummyGrades() {
 
@@ -29,28 +22,53 @@ public class GradeData {
 
     }
 
-    public SubjectEntity getSubjectByName(String parameter) {
-        List<SubjectEntity> allSubjects = getAllSubjects();
-        for(int i=0; i<allSubjects.size(); i++ ) {
-            if(allSubjects.get(i).getSubjectName().equals(parameter)) {
-                return allSubjects.get(i);
+    public List<GradeEntity> loadAllGradesForSubject(SubjectEntity selectedSubject, String username, String userRole) {
+        ArrayList<GradeEntity> grades = new ArrayList<>();
+
+        if(selectedSubject.getGrades().isEmpty()) {
+            for (GradeEntity allGrade : allGrades) {
+                if (((allGrade.getStudentName().equals(username) && userRole.equals("USER")) || (allGrade.getTeacherName().equals(username) && userRole.equals("WORKER")))
+                        && selectedSubject.getSubjectName().equals(allGrade.getSubject().getSubjectName())
+                        && !selectedSubject.getGrades().contains(allGrade)) {
+                    selectedSubject.addGrade(allGrade);
+                }
             }
+            return selectedSubject.getGrades();
         }
-        return null;
-    }
-    public List<GradeEntity> loadAllGradesForSubject(SubjectEntity selectedSubject, String username) {
-        for (GradeEntity allGrade : allGrades) {
-            if (allGrade.getStudentName().equals(username)
-                && selectedSubject.getSubjectName().equals(allGrade.getSubject().getSubjectName())
-                && !selectedSubject.getGrades().contains(allGrade)) {
-                selectedSubject.addGrade(allGrade);
-            }
-        }
-        return selectedSubject.getGrades();
+
+        if( userRole.equals("WORKER"))
+           grades = loadGradesByTeacher(selectedSubject, username);
+        else if ( userRole.equals("USER"))
+         grades = loadStudentGrades(selectedSubject, username);
+
+        return grades;
     }
 
-    public List<SubjectEntity> getAllSubjects() {
-        return allSubjects;
+    private ArrayList<GradeEntity> loadStudentGrades(SubjectEntity selectedSubject, String username) {
+        ArrayList<GradeEntity> grades = new ArrayList<>();
+        for (int i = 0; i < selectedSubject.getGrades().size(); i++) {
+            if (selectedSubject.getGrades().get(i).getStudentName().equals(username))
+                grades.add(selectedSubject.getGrades().get(i));
+        }
+        return grades;
     }
+
+    private ArrayList<GradeEntity> loadGradesByTeacher(SubjectEntity selectedSubject, String username) {
+        ArrayList<GradeEntity> grades = new ArrayList<>();
+        for (int i = 0; i < selectedSubject.getGrades().size(); i++) {
+            if (selectedSubject.getGrades().get(i).getTeacherName().equals(username))
+                grades.add(selectedSubject.getGrades().get(i));
+        }
+        return grades;
+    }
+
+    public void saveGrade(SubjectEntity subjectEntity, GradeEntity gradeEntity) {
+        subjectEntity.addGrade(gradeEntity);
+    }
+
+    public void deleteGrade(SubjectEntity subjectEntity, GradeEntity gradeEntity) {
+        subjectEntity.removeGrade(gradeEntity);
+    }
+
 
 }
