@@ -1,19 +1,31 @@
 package university.service.domain.program;
 
+import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.List;
 
+@Entity
 public class ProgramEntity {
-
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long programId;
     private String programName;
     private String programDescription;
-    private ArrayList<SubjectEntity> subjects = new ArrayList<>();
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "PROGRAM_SUBJECT",
+            joinColumns = @JoinColumn(name = "programId"),
+            inverseJoinColumns = @JoinColumn(name = "subjectId"))
+    List<SubjectEntity> subjects;
 
     public ProgramEntity() {
+        subjects = new ArrayList<>();
     }
 
     public ProgramEntity(String name, String description) {
         this.programName = name;
         this.programDescription = description;
+        subjects = new ArrayList<>();
     }
 
     public String getProgramName() {
@@ -40,7 +52,7 @@ public class ProgramEntity {
         subjects.removeIf(currentSubject -> currentSubject.getSubjectName().equals(subject.getSubjectName()));
     }
 
-    public ArrayList<SubjectEntity> getSubjects() {
+    public List<SubjectEntity> getSubjects() {
         return subjects;
     }
 }
