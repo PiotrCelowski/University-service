@@ -8,7 +8,6 @@ import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import org.springframework.security.access.annotation.Secured;
@@ -110,11 +109,13 @@ public class SubjectView extends VerticalLayout {
 
 
     private void saveSubjectEntity(SubjectForm.SaveEvent event) {
+        programUseCase.saveSubject(event.getSubjectEntity());
         updateList();
         closeEditor();
     }
 
     private void deleteSubjectEntity(ClickEvent<Button> buttonClickEvent) {
+        programUseCase.deleteSubject(this.selectedSubject);
         updateList();
         closeEditor();
     }

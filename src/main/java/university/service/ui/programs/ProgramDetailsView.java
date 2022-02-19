@@ -44,7 +44,7 @@ public class ProgramDetailsView extends VerticalLayout implements HasUrlParamete
         configureGrid();
 
         subjectForm = new SubjectForm();
-        subjectForm.addListener(SubjectForm.SaveEvent.class, this::saveSubjectEntity);
+        subjectForm.addListener(SubjectForm.SaveEvent.class, this::addSubjectEntity);
 
         FlexLayout content = new FlexLayout(grid, subjectForm);
         content.setFlexGrow(2, grid);
@@ -101,14 +101,14 @@ public class ProgramDetailsView extends VerticalLayout implements HasUrlParamete
         updateList();
     }
 
-    private void saveSubjectEntity(SubjectForm.SaveEvent event) {
-        programUseCase.saveSubject(event.getSubjectEntity(), this.currentProgram);
+    private void addSubjectEntity(SubjectForm.SaveEvent event) {
+        programUseCase.addSubjectToProgram(event.getSubjectEntity(), this.currentProgram);
         updateList();
         closeEditor();
     }
 
     private void deleteSubjectEntity(ClickEvent<Button> buttonClickEvent) {
-        programUseCase.deleteSubject(this.selectedSubject, this.currentProgram);
+        programUseCase.removeSubjectFromProgram(this.selectedSubject, this.currentProgram);
         updateList();
         closeEditor();
     }
